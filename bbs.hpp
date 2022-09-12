@@ -86,14 +86,14 @@ void generateParams(const std::string& filename, size_t L)
     std::string skfilename = filename + "_sk.dat";
     std::string vkfilename = filename + "_vk.dat";
 
-    BBSPublicParams pp;
+    BBSPublicParams<ppT> pp;
     pp.g1 = G1<ppT>::random_element();
     for(size_t i=0; i <= L; ++i)
         pp.h.emplace_back(G1<ppT>::random_element());
     
     pp.g2 = G2<ppT>::random_element();
 
-    BBSKeyPair keypair;
+    BBSKeyPair<ppT> keypair;
     keypair.sk = Fr<ppT>::random_element();
     keypair.vk = (keypair.sk)*pp.g2;
 
@@ -151,7 +151,7 @@ BBSFullParams<ppT> readFullParams(const std::string& filename, size_t L)
 template<typename ppT>
 BBSPublicParams<ppT> readPublicParams(const std::string& filename, size_t L)
 {
-    BBSFullParams<ppT> params = readFullParams(filename, L);
+    BBSFullParams<ppT> params = readFullParams<ppT>(filename, L);
     return params.pp;
 }
 
