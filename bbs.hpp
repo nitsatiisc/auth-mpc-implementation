@@ -179,7 +179,7 @@ void testReadAndWrite()
     BBSFullParams<ppT> params = readFullParams<ppT>(testfile, L);
 
     // check if w = g_2^x
-    if (params.keypair.vk == (params.keypair.sk)*(params.pp.g_2))
+    if (params.keypair.vk == (params.keypair.sk)*(params.pp.g2))
     {
         std::cout << "Test [OK]" << std::endl;
     } else 
