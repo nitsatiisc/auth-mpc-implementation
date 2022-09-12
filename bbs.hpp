@@ -39,8 +39,8 @@ template<typename ppT>
 class BBSKeyPair
 {
     public:
-    Fr<ppT> x;
-    G2<ppT> w;
+    Fr<ppT> sk;
+    G2<ppT> vk;
 };
 
 /**
