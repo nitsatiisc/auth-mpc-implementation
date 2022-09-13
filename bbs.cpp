@@ -9,5 +9,6 @@ int main(int argc, char *argv[])
     alt_bn128_pp::init_public_params();
     typedef alt_bn128_pp ppT;
     testReadAndWrite<ppT>();
+    
     return 0;
 }

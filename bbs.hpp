@@ -65,7 +65,7 @@ template<typename ppT>
 class BBSMessage
 {
     public:
-    std::vector< Fr<ppT> > m; // h vector
+    std::vector< Fr<ppT> > m; // m vector
 };
 
 
@@ -195,20 +195,21 @@ BBSMessage<ppT> readMessage(const std::string& filename, size_t L)
 }
 
 template<typename ppT, multi_exp_method Method>
-BBSSignature<ppT> sign(const std::string& filename, size_t L)
+BBSSignature<ppT> sign(const BBSFullParams<ppT>& params, const BBSMessage<ppT>& msg, size_t L)
 {
     
-    BBSFullParams<ppT> params = readFullParams<ppT>(filename, L);
-    BBSMessage<ppT> msg = readMessage<ppT>(filename, L);
     BBSSignature<ppT> sig;
     sig.e = Fr<ppT>::random_element();
     sig.s = Fr<ppT>::random_element();
     std::vector< Fr<ppT>> scalars;
+    // prepend s to m into a scalar array to enable one multi-exp.
     scalars.emplace_back(sig.s);
     for(size_t i=1; i <= L; ++i)
     {
         scalars.emplace_back(msg.m[i-1]);
     }
+
+    // compute b = <(1, s, m_1, ..., m_L), (g_1, h_0, h_1, ..., h_L)>
     G1<ppT> multi_exp_result = multi_exp<G1<ppT>, Fr<ppT>, Method>(params.pp.h.cbegin(), params.pp.h.cend(),
             scalars.cbegin(), scalars.cend(), 1);
     sig.A = ((params.keypair.sk + e).inverse()) * (params.pp.g1 + multi_exp_result);
@@ -216,25 +217,33 @@ BBSSignature<ppT> sign(const std::string& filename, size_t L)
 }
 
 template<typename ppT, multi_exp_method Method>
-void verify(const std::string& filename, size_t L, BBSSignature<ppT> sig, BBSMessage<ppT> msg)
+bool verify(const BBSPublicParams<ppT>& pp, 
+    const G2<ppT>& vk, size_t L, 
+    const BBSSignature<ppT>& sig, 
+    const BBSMessage<ppT>& msg)
 {
-    BBSPublicParams<ppT> pp = readPublicParams(filename, L);
-    G2<ppT> vk = readVerificationKey<ppT>(filename);
     std::vector< Fr<ppT>> scalars;
+
     scalars.emplace_back(sig.s);
     for(size_t i=1; i <= L; ++i)
     {
         scalars.emplace_back(msg.m[i-1]);
     }
+
     G1<ppT> multi_exp_result = multi_exp<G1<ppT>, Fr<ppT>, Method>(pp.h.cbegin(), pp.h.cend(),
             scalars.cbegin(), scalars.cend(), 1);
+    // b = <(g_1, h_0, ..., h_L), (1, s, m_1,..., m_L)>
+    // e(A, wg_2^e) = e(b, g_2)
     GT<ppT> leftPair = params::reduced_pairing(sig.A, (vk + (e * pp.g2)));
     GT<ppT> rightPair = params::reduced_pairing((pp.g1 + multi_exp_result), pp.g2);
     if (leftPair == rightPair)
     {
         std::cout << "Verification [PASS]" << std::endl;
-    } else 
+        return true;
+    } else {
         std::cout << "Verification [FAIL]" << std::endl;
+        return false;
+    }
 }
 
 template<typename ppT>
@@ -255,6 +264,41 @@ void testReadAndWrite()
         std::cout << "Test [OK]" << std::endl;
     } else 
         std::cout << "Test [FAIL]" << std::endl;
+}
+
+template<typename ppT>
+void testSignAndVerify()
+{
+    size_t L = 10;
+    size_t numTests = 10;
+    size_t passed = 0;
+
+    std::string testfile = "test_sign_verify";
+
+    // generate params
+    generateParams<ppT>(testfile, L);
+
+    // read full params
+    BBSFullParams<ppT> fullparams = readFullParams<ppT>(testfile, L);
+    BBSPublicParams<ppT> pp = fullparams.pp;
+    G2<ppT> vk = fullparams.keypair.vk;
+
+
+    for(size_t test = 0; test < numTests; ++test)
+    {
+        // generate random message of size L
+        BBSMessage<ppT> msg;
+        for(size_t i=0; i < L; ++i)
+            msg.m.emplace_back(Fr<ppT>::random_element());
+        
+        BBSSignature<ppT> sig = sign<ppT, multi_exp_method_bos_coster>(fullparams, msg, L);
+        if (verify<ppT, multi_exp_method_bos_coster>(pp, vk, L, sig, msg)) {
+            passed++;
+        }
+    }
+
+    std::cout << "Number of tests passed = " << passed << " out of " << numTests << std::endl;
+
 }
 
 #endif
