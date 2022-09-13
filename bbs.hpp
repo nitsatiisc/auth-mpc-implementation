@@ -212,7 +212,7 @@ BBSSignature<ppT> sign(const BBSFullParams<ppT>& params, const BBSMessage<ppT>& 
     // compute b = <(1, s, m_1, ..., m_L), (g_1, h_0, h_1, ..., h_L)>
     G1<ppT> multi_exp_result = multi_exp<G1<ppT>, Fr<ppT>, Method>(params.pp.h.cbegin(), params.pp.h.cend(),
             scalars.cbegin(), scalars.cend(), 1);
-    sig.A = ((params.keypair.sk + e).inverse()) * (params.pp.g1 + multi_exp_result);
+    sig.A = ((params.keypair.sk + sig.e).inverse()) * (params.pp.g1 + multi_exp_result);
     return sig;
 }
 
@@ -234,8 +234,8 @@ bool verify(const BBSPublicParams<ppT>& pp,
             scalars.cbegin(), scalars.cend(), 1);
     // b = <(g_1, h_0, ..., h_L), (1, s, m_1,..., m_L)>
     // e(A, wg_2^e) = e(b, g_2)
-    GT<ppT> leftPair = params::reduced_pairing(sig.A, (vk + (e * pp.g2)));
-    GT<ppT> rightPair = params::reduced_pairing((pp.g1 + multi_exp_result), pp.g2);
+    GT<ppT> leftPair = ppT::reduced_pairing(sig.A, (vk + (sig.e * pp.g2)));
+    GT<ppT> rightPair = ppT::reduced_pairing((pp.g1 + multi_exp_result), pp.g2);
     if (leftPair == rightPair)
     {
         std::cout << "Verification [PASS]" << std::endl;
