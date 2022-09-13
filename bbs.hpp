@@ -1,7 +1,12 @@
 #ifndef __AUTH_MPC_BBS_HPP__
 #define __AUTH_MPC_BBS_HPP__
 
+
+#include <libff/algebra/field_utils/bigint.hpp>
+#include <libff/algebra/scalar_multiplication/multiexp.hpp>
+#include <libff/algebra/scalar_multiplication/wnaf.hpp>
 #include <libff/common/profiling.hpp>
+#include <libff/common/rng.hpp>
 #include <libff/common/utils.hpp>
 #include <libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp>
 
@@ -54,6 +59,13 @@ class BBSFullParams
     public:
     BBSPublicParams<ppT> pp; 
     BBSKeyPair<ppT> keypair;
+};
+
+template<typename ppT>
+class BBSMessage
+{
+    public:
+    std::vector< Fr<ppT> > m; // h vector
 };
 
 
@@ -164,6 +176,67 @@ G2<ppT> readVerificationKey(const std::string& filename)
     vkfile >> vk;
     vkfile.close();
     return vk;
+}
+
+template<typename ppT>
+BBSMessage<ppT> readMessage(const std::string& filename, size_t L)
+{
+    std::string msgfilename = filename + "_msg.dat";
+    BBSMessage<ppT> msg; 
+    std::ifstream msgfile(msgfilename);
+    for(size_t i=1; i <= L; ++i)
+    {
+        Fr<ppT> elem;
+        msgfile >> elem;
+        msg.m.emplace_back(elem);
+    }
+    msgfile.close();
+    return msg;
+}
+
+template<typename ppT, multi_exp_method Method>
+BBSSignature<ppT> sign(const std::string& filename, size_t L)
+{
+    
+    BBSFullParams<ppT> params = readFullParams<ppT>(filename, L);
+    BBSMessage<ppT> msg = readMessage<ppT>(filename, L);
+    BBSSignature<ppT> sig;
+    sig.e = Fr<ppT>::random_element();
+    sig.s = Fr<ppT>::random_element();
+    std::vector< Fr<ppT>> scalars;
+    scalars.emplace_back(sig.s);
+    for(size_t i=1; i <= L; ++i)
+    {
+        scalars.emplace_back(msg.m[i-1]);
+    }
+    G1<ppT> temp_result = multi_exp<G1<ppT>, Fr<ppT>, Method>(pp.h.cbegin(), pp.h.cend(),
+            scalars.cbegin(), scalars.cend(), 1);    
+    Fr<ppT> temp_exp = (params.keypair.sk+e).inverse();
+    sig.A = temp_exp * (pp.g1 + temp_result);
+    return sig;
+}
+
+template<typename ppT, multi_exp_method Method>
+void verify(const std::string& filename, size_t L, BBSSignature<ppT> sig, BBSMessage<ppT> msg)
+{
+    BBSPublicParams<ppT> pp = readPublicParams(filename, L);
+    G2<ppT> vk = readVerificationKey<ppT>(filename);
+    std::vector< Fr<ppT>> scalars;
+    scalars.emplace_back(sig.s);
+    for(size_t i=1; i <= L; ++i)
+    {
+        scalars.emplace_back(msg.m[i-1]);
+    }
+    G1<ppT> temp1 = multi_exp<G1<ppT>, Fr<ppT>, Method>(pp.h.cbegin(), pp.h.cend(),
+            scalars.cbegin(), scalars.cend(), 1);
+    G2<ppT> temp2 = vk + (e*pp.g2);
+    GT<ppT> leftPair = params::reduced_pairing(sig.A, temp2);
+    GT<ppT> rightPair = params::reduced_pairing((pp.g1 + temp1), pp.g2);
+    if (leftPair == rightPair)
+    {
+        std::cout << "Verification [PASS]" << std::endl;
+    } else 
+        std::cout << "Verification [FAIL]" << std::endl;
 }
 
 template<typename ppT>
