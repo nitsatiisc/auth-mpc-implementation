@@ -33,8 +33,8 @@ std::string hex_string_from_bytes(const unsigned char *bytes, size_t n)
     for(size_t i=0; i < n; ++i)
     {
         uint8_t val = bytes[i];
-        hex_string.emplace_back(hex_table[val/16]);
-        hex_string.emplace_back(hex_table[val % 16]);
+        hex_string.push_back(hex_table[val/16]);
+        hex_string.push_back(hex_table[val % 16]);
 
     }
 
@@ -79,7 +79,7 @@ class FSModule {
         // get FieldT from bigint.
 
 
-        return FeildT::zero();
+        return FieldT::zero();
 
     };
 
