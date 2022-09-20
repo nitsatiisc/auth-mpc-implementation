@@ -70,8 +70,20 @@ class FSModule {
         std::cout << hex_string << std::endl;
 
         // convert hex_string to mpz_t
+        mpz_class hash_mpz(hex_string, 16);
+
         // get a bigint equivalent of FieldT::capacity()
-        // FieldT::field_char().to_mpz(mpz_t modprime)
+        mpz_t modprime;
+        mpz_init(modprime);
+        FieldT::field_char().to_mpz(modprime);
+
+        mpz_class modulus_fp(modprime);
+
+        mpz_class remainder = hash_mpz % modulus_fp;
+
+        bigint<FieldT::num_limbs> rem(remainder.get_mpz_t());
+        FieldT elem(rem);
+
         // Get remainder mpz_t 
         // mpz_mod( , , )
         // convert remainder to FieldT
@@ -79,7 +91,7 @@ class FSModule {
         // get FieldT from bigint.
 
 
-        return FieldT::zero();
+        return elem;
 
     };
 
