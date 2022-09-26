@@ -35,6 +35,13 @@ void testPokProver()
     prover.set_generators(gens);
     prover.set_witness(witness);
     prover.set_commitment(commitment);
+
+    Transcript tr = prover.run_prover();
+
+    for(auto iter=tr.begin(); iter != tr.end(); ++iter)
+    {
+        std::cout << iter->first << " : " << iter->second << std::endl;
+    }
 }
 
 
