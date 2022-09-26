@@ -26,8 +26,8 @@ void testPokProver()
     }
 
     commitment = multi_exp<GroupT, FieldT, multi_exp_method_bos_coster>(
-        witness.cbegin(), witness.cend(),
         gens.cbegin(), gens.cend(),
+        witness.cbegin(), witness.cend(),
         1
     );
 
