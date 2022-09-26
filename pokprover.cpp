@@ -35,12 +35,6 @@ void testPokProver()
     prover.set_generators(gens);
     prover.set_witness(witness);
     prover.set_commitment(commitment);
-
-    
-    
-
-
-
 }
 
 

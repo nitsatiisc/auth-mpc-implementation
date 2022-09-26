@@ -17,7 +17,7 @@ class BulletinBoard {
 
     std::string get_all_messages() { 
         std::string seed = channel.get_all_messages();
-        transcript_[round] = seed;
+        transcript_[round_] = seed;
         round_++;
         return seed;
      };
