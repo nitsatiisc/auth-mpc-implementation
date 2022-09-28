@@ -45,10 +45,11 @@ void testPokProver()
 
     std::string fvector = tr[1];
     std::stringstream str;
+    char delim;
     str << fvector;
     FieldT v1, v2;
-    str >> v1;
-    str >> v2;
+    str >> v1 >> delim;
+    str >> v2 >> delim;
 
     std::cout << "z[ 0 ]:" << v1 << std::endl;
     std::cout << "z[ 1 ]:" << v2 << std::endl;
