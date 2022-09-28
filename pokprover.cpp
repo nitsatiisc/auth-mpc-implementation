@@ -42,6 +42,17 @@ void testPokProver()
     {
         std::cout << iter->first << " : " << iter->second << std::endl;
     }
+
+    std::string fvector = tr[1];
+    std::stringstream str;
+    str << fvector;
+    FieldT v1, v2;
+    str >> v1;
+    str >> v2;
+
+    std::cout << "z[ 0 ]:" << v1 << std::endl;
+    std::cout << "z[ 1 ]:" << v2 << std::endl;
+
 }
 
 

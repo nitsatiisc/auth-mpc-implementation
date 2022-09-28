@@ -15,7 +15,7 @@ class PoKProver
     void set_generators(const std::vector<GroupT>& gens) { gens_ = gens; };
     void set_witness(const std::vector<FieldT>& witness) { witness_ = witness; };
     void set_commitment(const GroupT& commitment) { commitment_ = commitment; };
-    
+
     Transcript run_prover()
     {
         std::string m;
@@ -80,9 +80,11 @@ class PoKProver
                 z[i] = c*witness_[i] + random_vector_[i];
             
             std::stringstream str;
-            for(size_t i=0; i < z.size(); ++i)
+            for(size_t i=0; i < z.size(); ++i) {
+                std::cout << "z[ " << i " ]:" << z[i] << std::endl;
                 str << z[i];
-            
+            }
+
             round_++;
             return str.str();
 
