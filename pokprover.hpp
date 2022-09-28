@@ -81,7 +81,7 @@ class PoKProver
             
             std::stringstream str;
             for(size_t i=0; i < z.size(); ++i) {
-                std::cout << "z[ " << i " ]:" << z[i] << std::endl;
+                std::cout << "z[ " << i << " ]:" << z[i] << std::endl;
                 str << z[i];
             }
 
