@@ -48,8 +48,8 @@ void testPokProver()
     char delim;
     str << fvector;
     FieldT v1, v2;
-    str >> v1 >> delim;
-    str >> v2 >> delim;
+    str >> v1;
+    str >> v2;
 
     std::cout << "z[ 0 ]:" << v1 << std::endl;
     std::cout << "z[ 1 ]:" << v2 << std::endl;
