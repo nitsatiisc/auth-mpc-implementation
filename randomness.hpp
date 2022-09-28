@@ -50,6 +50,40 @@ class FSModule {
     SHA512_CTX sha512;
 
     public:
+    void absorb(const std::string& msg)
+    {
+        // convert string to msg
+        size_t n = msg.size();
+        std::vector<uint64_t> msg_uint;
+        const char *pinit = msg.c_str();
+        const char *p;
+
+        uint64_t u;
+        size_t j=0;
+        for(p = pinit; (p - pinit) < n; p++)
+        {
+                uint8_t b = *((uint8_t*)p);
+                u = u + (2^j)*b;
+                j++;
+                if ((j % 8 == 0)) {
+                    msg_uint.emplace_back(u);
+                    j = 0;
+                    u = 0;
+                }
+            
+        }
+
+        // check if we need to push a remaining uint
+        if (j != 0) 
+            msg_uint.emplace_back(u);
+
+        j = 0;
+        u = 0;
+
+        absorb(msg_uint);
+
+    };
+
     void absorb(std::vector<uint64_t>& msg)
     {
         for(size_t i=0; i < msg.size(); ++i)
