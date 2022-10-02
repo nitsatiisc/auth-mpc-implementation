@@ -91,7 +91,7 @@ class PoKProver
 
     };
 
-    static POKProof<GroupT, FieldT, 1> transcript_to_proof(Transcript& tr)
+    static PoKProof<GroupT, FieldT, 1> transcript_to_proof(Transcript& tr)
     {
         FSModule fs;
         POKProof<GroupT, FieldT, 1> proof;
