@@ -83,9 +83,10 @@ class PoKProver
         while ((m=next_message()) != "")
         {
             bb_.publish(m);
-            std::string seed = get_all_messages_for_round();
+            std::string seed = bb_.get_all_messages();
             std::cout << "seed = :" << seed << std::endl;
             fs_.absorb(seed); // update local state for generating challenges
+            std::cout << "c= :" << fs_.squeeze() << std::endl;
         }
 
         return bb_.get_full_transcript();
