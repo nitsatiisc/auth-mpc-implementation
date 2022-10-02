@@ -107,7 +107,6 @@ class FSModule {
         // get a bigint equivalent of hash
         // convert hash to hex_string
         auto hex_string = hex_string_from_bytes(hash, sizeof(hash));
-        std::cout << hex_string << std::endl;
 
         // convert hex_string to mpz_t
         mpz_class hash_mpz(hex_string, 16);
