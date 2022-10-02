@@ -149,6 +149,7 @@ class PoKProver
         {
             // compute the challenge
             FieldT c = fs_.squeeze();
+            std::cout << "c = " << c << std::endl;
             std::vector<FieldT> z(random_vector_.size());
             for(size_t i=0; i < z.size(); ++i)
                 z[i] = c*witness_[i] + random_vector_[i];
@@ -192,6 +193,7 @@ class PoKVerifier
             1
         );
 
+        std::cout << "c = " << c << std::endl;
         GroupT rhs = proof.c * commitment_ + proof.A[0];
 
         return (rhs == lhs);
