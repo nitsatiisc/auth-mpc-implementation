@@ -192,7 +192,7 @@ class PoKVerifier
             1
         );
 
-        GroupT rhs = proof.c * commitment_ + proof.A;
+        GroupT rhs = proof.c * commitment_ + proof.A[0];
 
         return (rhs == lhs);
     };
