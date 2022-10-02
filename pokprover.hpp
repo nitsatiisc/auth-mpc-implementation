@@ -86,7 +86,6 @@ class PoKProver
             std::string seed = bb_.get_all_messages();
             std::cout << "seed = :" << seed << std::endl;
             fs_.absorb(seed); // update local state for generating challenges
-            std::cout << "c= :" << fs_.squeeze() << std::endl;
         }
 
         return bb_.get_full_transcript();
@@ -101,6 +100,7 @@ class PoKProver
         std::cout << "tr[0] = :" << tr[0] << std::endl;
         fs.absorb(tr[0]);
         proof.c = fs.squeeze();
+        std::cout << "proof.c = :" << proof.c << std::endl;
         read_elements<FieldT>(proof.zz[0], tr[1], proof.zz[0].size());
         return proof;
     };
@@ -152,7 +152,7 @@ class PoKProver
         {
             // compute the challenge
             FieldT c = fs_.squeeze();
-            std::cout << "c = " << c << std::endl;
+            std::cout << "c = X:" << c << std::endl;
             std::vector<FieldT> z(random_vector_.size());
             for(size_t i=0; i < z.size(); ++i)
                 z[i] = c*witness_[i] + random_vector_[i];
