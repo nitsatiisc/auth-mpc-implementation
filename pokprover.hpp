@@ -193,7 +193,7 @@ class PoKVerifier
             1
         );
 
-        std::cout << "c = " << c << std::endl;
+        std::cout << "c = " << proof.c << std::endl;
         GroupT rhs = proof.c * commitment_ + proof.A[0];
 
         return (rhs == lhs);
