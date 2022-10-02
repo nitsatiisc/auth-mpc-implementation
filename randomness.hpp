@@ -50,6 +50,12 @@ class FSModule {
     SHA512_CTX sha512;
 
     public:
+    /**
+     * @brief absorb using string message.
+     * Internally converts string to vector<uint64_t>
+     * 
+     * @param msg 
+     */
     void absorb(const std::string& msg)
     {
         // convert string to msg

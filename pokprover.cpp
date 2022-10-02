@@ -37,6 +37,19 @@ void testPokProver()
     prover.set_commitment(commitment);
 
     Transcript tr = prover.run_prover();
+    PoKProof<GroupT, FieldT,1> proof = PoKProver::transcript_to_proof(tr);
+    PoKVerifier<GroupT, FieldT> verifier;
+    verifier.set_generators(gens);
+    verifier.set_commitment(commitment);
+    
+    if (verifier.verify(proof)) 
+    {
+        std::cout << "Verification Status [OK]" << std::endl;
+    } else {
+        std::cout << "Verification Status [FAIL]" << std::endl;
+    }
+
+    /*
 
     for(auto iter=tr.begin(); iter != tr.end(); ++iter)
     {
@@ -53,6 +66,7 @@ void testPokProver()
 
     std::cout << "z[ 0 ]:" << v1 << std::endl;
     std::cout << "z[ 1 ]:" << v2 << std::endl;
+    */
 
 }
 

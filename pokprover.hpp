@@ -5,6 +5,67 @@
 #include "randomness.hpp"
 #include "bulletinboard.hpp"
 
+template<typename T>
+void read_elements(std::vector<T>& v, const std::string& s, size_t n)
+{
+    std::stringstream str;
+    str << s;
+
+    for(size_t i=0; i < n; ++i)
+    {
+        str >> v[i];
+    }
+}
+
+/**
+ * @brief Distributed POK Proof with n provers
+ * 
+ * @tparam GroupT 
+ * @tparam FieldT 
+ * @tparam n 
+ */
+template<typename GroupT, typename FieldT, size_t n>
+class PoKProof {
+    public:
+    std::vector<GroupT> A;  
+    FieldT c; 
+    std::vector<std::vector<FieldT>> zz;
+    size_t vecsize;
+
+    PoKProof(size_t vsize)
+    {
+        vecsize = vsize;
+        A.resize(n);
+        zz.resize(n, std::vector<FieldT>(vecsize));
+    };
+    
+
+    void write(std::ofstream& ofile) {
+        for(size_t i=0; i < n; ++i)
+            ofile << A[i];
+        
+        ofile >> c; 
+
+        for(size_t i=0; i < n; ++i) 
+            for(size_t j=0; j < zz[i].size(); ++j)
+                ofile << zz[i][j] << "\n";
+    };
+
+    void read(std::ifstream& ifile) {
+        for(size_t i=0; i < n; ++i)
+            ifile >> A[i];
+
+        ifile >> c;
+
+        for(size_t i=0; i < n; ++i)
+        {
+            for(size_t j=0; j < vecsize; ++j)
+                ifile >> zz[i][j];
+        }
+    };
+
+
+};
 
 template<typename GroupT, typename FieldT, typename ChannelT>
 class PoKProver 
@@ -29,6 +90,19 @@ class PoKProver
         return bb_.get_full_transcript();
 
     };
+
+    static POKProof<GroupT, FieldT, 1> transcript_to_proof(Transcript& tr)
+    {
+        FSModule fs;
+        POKProof<GroupT, FieldT, 1> proof;
+        read_elements<GroupT>(proof.A, tr[0], proof.A.size());
+        fs.absorb(tr[0]);
+        proof.c = fs.squeeze();
+        read_elements<FieldT>(proof.zz[0], tr[1], proof.zz[0].size());
+        return proof;
+    };
+
+
 
     private:
     FSModule<FieldT> fs_;
@@ -81,7 +155,6 @@ class PoKProver
             
             std::stringstream str;
             for(size_t i=0; i < z.size(); ++i) {
-                std::cout << "z[ " << i << " ]:" << z[i] << std::endl;
                 str << z[i] << "\n";
             }
 
@@ -92,6 +165,39 @@ class PoKProver
             return "";
 
     }
+
+};
+
+template<typename GroupT, typename FieldT>
+class PoKVerifier
+{
+    private:
+    std::vector<GroupT> gens_;
+    GroupT commitment_;
+
+    public:
+    PoKVerifier() {
+
+    };
+
+    void set_generators(const std::vector<GroupT>& gens) { gens_ = gens; };
+    void set_commitment(const GroupT& commitment) { commitment_ = commitment; };
+
+    bool verify(const PoKProof<GroupT, FieldT, 1>& proof)
+    {
+        // check <gens, z> = c*commitment + A
+        GroupT lhs = multi_exp<GroupT, FieldT, multi_exp_method_bos_coster>(
+            gens_.begin(), gens_.end(),
+            proof.zz[0].begin(), proof.zz[0].end(),
+            1
+        );
+
+        GroupT rhs = proof.c * commitment_ + proof.A;
+
+        return (rhs == lhs);
+    };
+
+
 
 };
 
