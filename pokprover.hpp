@@ -84,6 +84,7 @@ class PoKProver
         {
             bb_.publish(m);
             std::string seed = get_all_messages_for_round();
+            std::cout << "seed = :" << seed << std::endl;
             fs_.absorb(seed); // update local state for generating challenges
         }
 
@@ -96,6 +97,7 @@ class PoKProver
         FSModule<FieldT> fs;
         PoKProof<GroupT, FieldT, 1> proof(vecsize);
         read_elements<GroupT>(proof.A, tr[0], proof.A.size());
+        std::cout << "tr[0] = :" << tr[0] << std::endl;
         fs.absorb(tr[0]);
         proof.c = fs.squeeze();
         read_elements<FieldT>(proof.zz[0], tr[1], proof.zz[0].size());
