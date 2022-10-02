@@ -91,10 +91,10 @@ class PoKProver
 
     };
 
-    static PoKProof<GroupT, FieldT, 1> transcript_to_proof(Transcript& tr)
+    static PoKProof<GroupT, FieldT, 1> transcript_to_proof(Transcript& tr, size_t vecsize)
     {
         FSModule<FieldT> fs;
-        PoKProof<GroupT, FieldT, 1> proof;
+        PoKProof<GroupT, FieldT, 1> proof(vecsize);
         read_elements<GroupT>(proof.A, tr[0], proof.A.size());
         fs.absorb(tr[0]);
         proof.c = fs.squeeze();

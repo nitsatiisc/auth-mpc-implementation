@@ -37,7 +37,7 @@ void testPokProver()
     prover.set_commitment(commitment);
 
     Transcript tr = prover.run_prover();
-    PoKProof<GroupT, FieldT,1> proof = PoKProver<GroupT, FieldT, LocalChannel>::transcript_to_proof(tr);
+    PoKProof<GroupT, FieldT,1> proof = PoKProver<GroupT, FieldT, LocalChannel>::transcript_to_proof(tr, gens.size());
     PoKVerifier<GroupT, FieldT> verifier;
     verifier.set_generators(gens);
     verifier.set_commitment(commitment);
