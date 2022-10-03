@@ -5,7 +5,6 @@
 #include <string>
 #include <vector>
 
-typedef std::map<size_t, std::string>  Transcript;
 
 template<typename ChannelT>
 class BulletinBoard {
@@ -17,7 +16,6 @@ class BulletinBoard {
 
     std::string get_all_messages() { 
         std::string seed = channel.get_all_messages();
-        transcript_[round_] = seed;
         round_++;
         return seed;
      };
@@ -26,7 +24,6 @@ class BulletinBoard {
 
     private:
     ChannelT channel;
-    Transcript transcript_;
     size_t round_;
 
 };

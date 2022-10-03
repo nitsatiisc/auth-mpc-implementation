@@ -5,6 +5,8 @@
 #include "randomness.hpp"
 #include "bulletinboard.hpp"
 
+typedef std::map<size_t, std::string>  Transcript;
+
 template<typename T>
 void read_elements(std::vector<T>& v, const std::string& s, size_t n)
 {
@@ -80,14 +82,16 @@ class PoKProver
     Transcript run_prover()
     {
         std::string m;
+        Transcript tr;
         while ((m=next_message()) != "")
         {
             bb_.publish(m);
             std::string seed = bb_.get_all_messages();
+            tr[round_] = seed;
             fs_.absorb(seed); // update local state for generating challenges
         }
 
-        return bb_.get_full_transcript();
+        return tr;
 
     };
 
