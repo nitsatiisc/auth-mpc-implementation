@@ -50,6 +50,7 @@ class LocalChannel {
 
 };
 
+#include "broadcastchannel.hpp"
 
 
 #endif
