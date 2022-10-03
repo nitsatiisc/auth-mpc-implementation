@@ -87,7 +87,7 @@ class PoKProver
         {
             bb_.publish(m);
             std::string seed = bb_.get_all_messages();
-            tr[round_] = seed;
+            tr[round_ - 1] = seed;
             fs_.absorb(seed); // update local state for generating challenges
         }
 
