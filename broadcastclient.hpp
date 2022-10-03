@@ -139,8 +139,8 @@ class BroadcastClient
             {
                 std::vector<std::vector<uint8_t> > parts;
                 read_multipart_message(dealer_socket, parts);
-                assert(parts.size() == 3);
-                return parts[2];
+                assert(parts.size() == 2);
+                return parts[1];
                 // return the appropriate part to message.
             }
         }
