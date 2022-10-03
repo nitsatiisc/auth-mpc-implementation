@@ -26,14 +26,10 @@ class BroadcastHub
     void broadcast()
     {
         // assemble all messages into a message
-        std::string full_message = "";
+        std::vector<uint8_t> full_message;
         for(size_t i=0; i < nclients; ++i)
         {
-            full_message = full_message + round_messages[i];
-            if (i < nclients - 1)
-            {
-                full_message = full_message + ":";
-            }
+            full_message.insert(full_message.end(), round_messages[i].begin(), round_messages[i].end());
         }
 
         uint8_t proto_code = PROTO_CODE_SEND_MSG_TO_CLIENT;
@@ -140,6 +136,7 @@ class BroadcastHub
     private:
     void *context;
     void *router_socket;
+    std::string hub_address;
     size_t nclients;
     size_t nmessages;
     std::map<uint8_t, std::vector<uint8_t>> round_messages;
