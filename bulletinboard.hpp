@@ -20,7 +20,6 @@ class BulletinBoard {
         return seed;
      };
 
-    Transcript get_full_transcript() { return transcript_; };
 
     private:
     ChannelT channel;
