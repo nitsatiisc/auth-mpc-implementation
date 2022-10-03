@@ -64,7 +64,7 @@ class FSModule {
         const char *pinit = msg.c_str();
         const char *p;
 
-        uint64_t u;
+        uint64_t u=0;
         size_t j=0;
         for(p = pinit; (p - pinit) < n; p++)
         {
