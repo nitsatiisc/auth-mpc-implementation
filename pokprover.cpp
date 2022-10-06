@@ -133,8 +133,8 @@ void testDPokProver(const char *argv[])
         proof.write(ofile);
     };
 
-    PoKProof<GroupT, FieldT, 3> proof;
-    std::ofstream ifile(std::string("proof-") + std::string(argv[1]) + ".dat");
+    PoKProof<GroupT, FieldT, 3> proof(2);
+    std::ifstream ifile(std::string("proof-") + std::string(argv[1]) + ".dat");
     proof.read(ifile);
 
 
@@ -148,7 +148,7 @@ void testDPokProver(const char *argv[])
         std::cout << "Verification Status [OK]";
     else 
         std::cout << "Verification Status [FAIL]";
-        
+
 
 
 }
