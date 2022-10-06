@@ -137,8 +137,18 @@ void testDPokProver(const char *argv[])
     std::ofstream ifile(std::string("proof-") + std::string(argv[1]) + ".dat");
     proof.read(ifile);
 
-    
 
+    DPoKVerifier<GroupT, FieldT, 3> verifier;
+    verifier.set_generators(gens);
+    verifier.set_coefficients(std::vector<FieldT>(3, FieldT::one()));
+    verifier.set_commitment(commitment);
+    bool ret = verifier.verify(proof);
+
+    if (ret)
+        std::cout << "Verification Status [OK]";
+    else 
+        std::cout << "Verification Status [FAIL]";
+        
 
 
 }
