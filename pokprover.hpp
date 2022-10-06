@@ -47,7 +47,7 @@ class PoKProof {
         for(size_t i=0; i < n; ++i)
             ofile << A[i];
         
-        ofile >> c; 
+        ofile << c << "\n"; 
 
         for(size_t i=0; i < n; ++i) 
             for(size_t j=0; j < zz[i].size(); ++j)
@@ -220,6 +220,13 @@ class DPoKProver
     {
         return prover.run_prover();
     };
+
+    template<size_t n>
+    PoKProof<GroupT, FieldT, n> transcript_to_proof(Transcript& tr, size_t vecsize)
+    {
+        return prover.transcript_to_proof<n>(tr, vecsize);
+    };
+
 
     private:
     PoKProver<GroupT, FieldT, BroadcastChannel> prover;
