@@ -133,10 +133,13 @@ void testDPokProver(const char *argv[])
         proof.write(ofile);
     };
 
+    std::cout << "Reading proof from file" << std::endl;
+
     PoKProof<GroupT, FieldT, 3> proof(2);
     std::ifstream ifile(std::string("proof-") + std::string(argv[1]) + ".dat");
     proof.read(ifile);
 
+    std::cout << "Verifying DPOK" << std::endl;
 
     DPoKVerifier<GroupT, FieldT, 3> verifier;
     verifier.set_generators(gens);
