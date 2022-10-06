@@ -62,7 +62,7 @@ class LocalChannel {
 
 class BroadcastChannel {
     public:
-    BroadcastClient() {};
+    BroadcastChannel() {};
 
     BroadcastChannel(
         const std::string& hub_address,
