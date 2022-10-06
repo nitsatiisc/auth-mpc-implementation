@@ -70,10 +70,71 @@ void testPokProver()
 
 }
 
-
-int main(int argc, char *argvp[])
+void testDPokProver(const char *argv[])
 {
-    testPokProver();
+
+    alt_bn128_pp::init_public_params();
+
+    typedef alt_bn128_pp ppT;
+    typedef G1<ppT> GroupT;
+    typedef Fr<ppT> FieldT;
+
+    std::string hub_address = "localhost:8000";
+    size_t client_id = std::atoi(argv[1]);
+
+    size_t L = 2;
+
+    DPoKProver<GroupT, FieldT, 3> dprover(hub_address, client_id);
+
+    std::vector<FieldT> witness0, witness1, witness2, witness;
+    GroupT commitment;
+    std::vector<GroupT> gens;
+
+    witness0.emplace_back(1); witness0.emplace_back(2);
+    witness1.emplace_back(3); witness1.emplace_back(4);
+    witness2.emplace_back(5); witness2.emplace_back(6);
+    std::vector<FieldT> coeffs = {15, 20};
+    gens.emplace_back(coeffs[0] * GroupT::one());
+    gens.emplace_back(coeffs[1] * GroupT::one());
+
+    for(size_t i=0; i < L; ++i)
+        witness.emplace_back(witness0[i] + witness1[i] + witness2[i]);
+    
+
+    commitment = multi_exp<GroupT, FieldT, multi_exp_method_bos_coster>(
+        gens.cbegin(), gens.cend(),
+        witness.cbegin(), witness.cend(),
+        1
+    );
+
+    dprover.init();    
+    BulletinBoard<BroadcastChannel> bb;
+    BroadcastChannel bChannel(hub_address, client_id);
+    bb.set_channel(bChannel);
+    bb.init();
+
+    dprover.set_bulletin_board(bb);
+    dprover.set_generators(gens);
+    if (client_id == 0)
+        dprover.set_witness(witness0);
+    else if (client_id == 1)
+        dprover.set_witness(witness1);
+    else if (client_id == 2)
+        dprover.set_witness(witness2);
+    else {};
+    
+    dprover.set_commitment(commitment);
+
+    Transcript tr = dprover.run_prover();
+
+
+}
+
+int main(int argc, char *argv[])
+{
+    // testPokProver();
+    testDPokProver(argv);
+    return 0;
 
 
 }

@@ -4,6 +4,7 @@
 #include "bbs.hpp"
 #include "randomness.hpp"
 #include "bulletinboard.hpp"
+#include <memory>
 
 typedef std::map<size_t, std::string>  Transcript;
 
@@ -87,6 +88,7 @@ class PoKProver
         {
             bb_.publish(m);
             std::string seed = bb_.get_all_messages();
+            std::cout << seed << std::endl;
             tr[round_ - 1] = seed;
             fs_.absorb(seed); // update local state for generating challenges
         }
@@ -173,6 +175,50 @@ class PoKProver
     }
 
 };
+
+template<typename GroupT, typename FieldT, size_t n>
+class DPoKProver 
+{
+    public:
+    DPoKProver(size_t client_id): client_id(client_id), hub_address(hub_address)
+    {
+        //pchannel.reset(new BroadcastChannel(hub_address, client_id));
+    };
+
+    void init() 
+    {
+        // pchannel->init();
+    };
+
+    // delegate these to the internal prover object
+    void set_bulletin_board(const BulletinBoard<BroadcastChannel>& bb) { 
+        prover.set_bulletin_board(bb); 
+    };
+
+    void set_generators(const std::vector<GroupT>& gens) { 
+        prover.set_generators(gens); 
+    };
+
+    void set_witness(const std::vector<FieldT>& witness) { 
+        prover.set_witness(witness); 
+    };
+
+    void set_commitment(const GroupT& commitment) { 
+        prover.set_commitment(commitment); 
+    };
+
+    Transcript run_prover()
+    {
+        return prover.run_prover();
+    };
+
+    private:
+    PoKProver<GroupT, FieldT, BroadcastChannel> prover;
+    //std::shared_ptr<BroadcastChannel> pchannel;
+    size_t client_id;
+    std::string hub_address;
+};
+
 
 template<typename GroupT, typename FieldT>
 class PoKVerifier
