@@ -268,4 +268,59 @@ class PoKVerifier
 
 };
 
+template<typename GroupT, typename FieldT, size_t n>
+class DPoKVerifier
+{
+    private:
+    std::vector<GroupT> gens_;
+    GroupT commitment_;
+    std::vector<FieldT> coeffs_; // reconstruction coefficients
+
+
+    public:
+    DPoKVerifier() {
+
+    };
+
+    void set_coefficients(const std::vector<FieldT>& coeffs) { coeffs_ = coeffs; };
+    void set_generators(const std::vector<GroupT>& gens) { gens_ = gens; };
+    void set_commitment(const GroupT& commitment) { commitment_ = commitment; };
+
+    bool verify(const PoKProof<GroupT, FieldT, n>& proof)
+    {
+        // check <gens, c_1z_1+c_2z_2+...+c_nz_n> = c*commitment + c_1A_1 + ... + c_nA_n
+
+        std::vector<FieldT> z(gens_.size(), FieldT::zero());
+        for(size_t i=0; i < z.size(); ++i)
+        {
+            for(size_t j=0; j < n; ++i)
+                z[i] = z[i] + (coeffs_[j] * proof.zz[j][i]);
+        }
+
+        std::vector<FieldT> coeffs_rhs;
+        coeffs_rhs.emplace_back(proof.c);
+        coeffs_rhs.insert(coeffs_rhs.end(), coeffs_.begin(), coeffs_.end());
+
+        std::vector<GroupT> comms_rhs;
+        comms_rhs.emplace_back(commitment_);
+        comms_rhs.insert(comms_rhs.end(), gens_.begin(), gens_.end());
+
+        GroupT lhs = multi_exp<GroupT, FieldT, multi_exp_method_bos_coster>(
+            gens_.begin(), gens_.end(),
+            z.begin(), z.end(),
+            1
+        );
+
+        GroupT rhs = multi_exp<GroupT, FieldT, multi_exp_method_bos_coster>(
+            comms_rhs.begin(), comms_rhs.end(),
+            coeffs_rhs.begin(), coeffs_rhs.end(),
+            1
+        );
+
+        return (rhs == lhs);
+    };
+
+
+
+};
 #endif
