@@ -220,7 +220,6 @@ class DPoKProver
         return prover.run_prover();
     };
 
-    template<size_t n>
     PoKProof<GroupT, FieldT, n> transcript_to_proof(Transcript& tr, size_t vecsize)
     {
         return prover.transcript_to_proof<n>(tr, vecsize);
