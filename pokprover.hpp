@@ -108,7 +108,7 @@ class PoKProver
         fs.absorb(tr[0]);
         proof.c = fs.squeeze();
 
-        std::vector<FieldT> all_z_vectors(n*vecsize);
+        std::vector<FieldT> all_z_vectors(m*vecsize);
         read_elements<FieldT>(all_z_vectors, tr[1], all_z_vectors.size());
 
         for(size_t i=0; i < proof.zz.size(); ++i)
