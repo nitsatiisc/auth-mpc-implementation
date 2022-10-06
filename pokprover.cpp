@@ -127,18 +127,18 @@ void testDPokProver(const char *argv[])
 
     Transcript tr = dprover.run_prover();
 
-    {
-        PoKProof<GroupT, FieldT, 3> proof = dprover.transcript_to_proof(tr, gens.size());
-        std::ofstream ofile(std::string("proof-") + std::string(argv[1]) + ".dat");
-        proof.write(ofile);
-    };
+    PoKProof<GroupT, FieldT, 3> proof = dprover.transcript_to_proof(tr, gens.size());
+    std::ofstream ofile(std::string("proof-") + std::string(argv[1]) + ".dat");
+    proof.write(ofile);
+
+    /*
 
     std::cout << "Reading proof from file" << std::endl;
 
     PoKProof<GroupT, FieldT, 3> proof(2);
     std::ifstream ifile(std::string("proof-") + std::string(argv[1]) + ".dat");
     proof.read(ifile);
-
+    */
     std::cout << "Verifying DPOK" << std::endl;
 
     DPoKVerifier<GroupT, FieldT, 3> verifier;
