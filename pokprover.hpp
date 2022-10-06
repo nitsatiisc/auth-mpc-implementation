@@ -303,7 +303,7 @@ class DPoKVerifier
 
         std::vector<GroupT> comms_rhs;
         comms_rhs.emplace_back(commitment_);
-        comms_rhs.insert(comms_rhs.end(), gens_.begin(), gens_.end());
+        comms_rhs.insert(comms_rhs.end(), proof.A.begin(), proof.A.end());
 
         GroupT lhs = multi_exp<GroupT, FieldT, multi_exp_method_bos_coster>(
             gens_.begin(), gens_.end(),
