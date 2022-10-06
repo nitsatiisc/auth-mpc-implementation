@@ -62,10 +62,13 @@ class LocalChannel {
 
 class BroadcastChannel {
     public:
+    BroadcastClient() {};
+
     BroadcastChannel(
         const std::string& hub_address,
         size_t client_id
-    ): {
+    ) 
+    {
         pConnector.reset(new BroadcastClient(hub_address, client_id));
     };
 
@@ -81,7 +84,7 @@ class BroadcastChannel {
 
     std::string get_all_messages()
     {
-        std::vector<uint8_t> msg_uint = pConnector->recv_msg_from_hub();
+        std::vector<uint8_t> msg_uint = pConnector->recv_message_from_hub();
         std::string msg(msg_uint.begin(), msg_uint.end());
         return msg;
     };

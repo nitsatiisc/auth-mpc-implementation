@@ -180,7 +180,8 @@ template<typename GroupT, typename FieldT, size_t n>
 class DPoKProver 
 {
     public:
-    DPoKProver(size_t client_id): client_id(client_id), hub_address(hub_address)
+    DPoKProver(const std::string& hub_address, size_t client_id): 
+    client_id(client_id), hub_address(hub_address)
     {
         //pchannel.reset(new BroadcastChannel(hub_address, client_id));
     };
