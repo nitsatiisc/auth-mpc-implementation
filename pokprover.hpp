@@ -97,18 +97,18 @@ class PoKProver
 
     };
 
-    template<size_t m>
-    PoKProof<GroupT, FieldT, m> transcript_to_proof(Transcript& tr, size_t vecsize)
+    template<size_t N>
+    PoKProof<GroupT, FieldT, N> transcript_to_proof(Transcript& tr, size_t vecsize)
     {
        
         FSModule<FieldT> fs;
-        PoKProof<GroupT, FieldT, m> proof(vecsize);
+        PoKProof<GroupT, FieldT, N> proof(vecsize);
        
         read_elements<GroupT>(proof.A, tr[0], proof.A.size());
         fs.absorb(tr[0]);
         proof.c = fs.squeeze();
 
-        std::vector<FieldT> all_z_vectors(m*vecsize);
+        std::vector<FieldT> all_z_vectors(N*vecsize);
         read_elements<FieldT>(all_z_vectors, tr[1], all_z_vectors.size());
 
         for(size_t i=0; i < proof.zz.size(); ++i)
@@ -222,7 +222,7 @@ class DPoKProver
 
     PoKProof<GroupT, FieldT, n> transcript_to_proof(Transcript& tr, size_t vecsize)
     {
-        return prover.transcript_to_proof<n>(tr, vecsize);
+        return prover.transcript_to_proof(tr, vecsize);
     };
 
 
