@@ -97,12 +97,12 @@ class PoKProver
 
     };
 
-    template<>
-    PoKProof<GroupT, FieldT, n> transcript_to_proof(Transcript& tr, size_t vecsize)
+    template<size_t m>
+    PoKProof<GroupT, FieldT, m> transcript_to_proof(Transcript& tr, size_t vecsize)
     {
        
         FSModule<FieldT> fs;
-        PoKProof<GroupT, FieldT, n> proof(vecsize);
+        PoKProof<GroupT, FieldT, m> proof(vecsize);
        
         read_elements<GroupT>(proof.A, tr[0], proof.A.size());
         fs.absorb(tr[0]);
@@ -117,7 +117,6 @@ class PoKProver
 
         return proof;
     };
-
 
 
     private:
