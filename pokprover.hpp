@@ -222,7 +222,7 @@ class DPoKProver
 
     PoKProof<GroupT, FieldT, n> transcript_to_proof(Transcript& tr, size_t vecsize)
     {
-        return prover.transcript_to_proof<n>(tr, vecsize);
+        return prover.template transcript_to_proof<n>(tr, vecsize);
     };
 
 
