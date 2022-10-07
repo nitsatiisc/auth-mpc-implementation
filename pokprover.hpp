@@ -293,7 +293,7 @@ class DPoKVerifier
         std::vector<FieldT> z(gens_.size(), FieldT::zero());
         for(size_t i=0; i < z.size(); ++i)
         {
-            for(size_t j=0; j < n; ++i)
+            for(size_t j=0; j < n; ++j)
                 z[i] = z[i] + (coeffs_[j] * proof.zz[j][i]);
         }
 
