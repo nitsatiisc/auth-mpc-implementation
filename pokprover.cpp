@@ -3,6 +3,45 @@
 using namespace libff;
 using std::size_t;
 
+template<typename FieldT>
+std::vector<FieldT> read_elements_montgomery(std::istream& is)
+{
+    // precompute powers (2^(8*i)) for i=0,...,31
+    std::vector<FieldT> powers_of_two;
+    powers_of_two.emplace_back(FieldT::one());
+    FieldT power = FieldT::one();
+    for(size_t i=0; i < 32; ++i)
+    {
+        power = FieldT(256)*power;
+        powers_of_two.emplace_back(power);
+    }
+
+    // Montgomery factor
+    size_t nwords = (FieldT::num_bits + 63)/64;
+    size_t nbytes = 8 * nwords;
+    FieldT R = (FieldT(2))^(64*nwords);
+    FieldT Rinv = R.inverse();
+
+    std::vector<FieldT> result;
+    std::vector<uint8_t> buffer(nbytes);
+    while (!is.eof())
+    {
+        // read a buffer for the number
+        is.read((char *)(&buffer[0]), nbytes);
+        if (!is.eof())
+        {
+            FieldT number = 0;
+            for(size_t i=0; i < nbytes; ++i)
+                number += (FieldT(buffer[i])*powers_of_two[i]);
+            number = number * Rinv;
+            result.emplace_back(number);
+        }
+    }
+
+    return result;
+
+}
+
 void testPokProver()
 {
     alt_bn128_pp::init_public_params();
@@ -128,10 +167,10 @@ void testDPokProver(const char *argv[])
     Transcript tr = dprover.run_prover();
 
     PoKProof<GroupT, FieldT, 3> proof = dprover.transcript_to_proof(tr, gens.size());
-    std::ofstream ofile(std::string("proof-") + std::string(argv[1]) + ".dat");
-    proof.write(ofile);
 
     /*
+    std::ofstream ofile(std::string("proof-") + std::string(argv[1]) + ".dat");
+    proof.write(ofile);
 
     std::cout << "Reading proof from file" << std::endl;
 
@@ -152,7 +191,7 @@ void testDPokProver(const char *argv[])
     else 
         std::cout << "Verification Status [FAIL]";
 
-
+    
 
 }
 
@@ -172,8 +211,8 @@ bool run_dpok(const char *argv[])
 
     std::string hub_address = "localhost:8000";
     size_t client_id = std::atoi(argv[1]);
-    std::string shares_file(argv[2]);
-    size_t input_size = std::atoi(argv[3]);
+    size_t input_size = std::atoi(argv[2]);
+    std::string shares_file;
 
 
     size_t L = input_size;
@@ -188,9 +227,17 @@ bool run_dpok(const char *argv[])
         gens.emplace_back(coeffs[i] * GroupT::one());
 
     // read witness shares from shares_file
-    std::ifstream ifile(shares_file);
-    witness = read_elements<FieldT>(ifile);
-    ifile.close();
+    // std::ifstream ifile(shares_file);
+    // witness = read_elements<FieldT>(ifile);
+    // ifile.close();
+
+    // convert from montgomery to integer representation
+    shares_file = std::string("Persistence/Transactions-P") + std::to_string(client_id)+".data";
+    std::cout << shares_file << std::endl;
+
+    std::ifstream ifile(shares_file, std::ios::binary);
+    witness = read_elements_montgomery<FieldT>(ifile);
+    std::cout << "Read " << witness.size() << " shares" << std::endl;
 
     // actual commitment for test
     std::vector<FieldT> shared_vector(L, FieldT::one());
@@ -232,7 +279,7 @@ bool run_dpok(const char *argv[])
         std::cout << "Verification Status [FAIL]";
 
 
-
+    return ret;
 }
 int main(int argc, const char *argv[])
 {
