@@ -20,6 +20,17 @@ void read_elements(std::vector<T>& v, const std::string& s, size_t n)
     }
 }
 
+template<typename T>
+std::vector<T> read_elements(std::ifstream& ifile)
+{
+    std::vector<T> elements;
+    T elem;
+    while (ifile >> elem)
+        elements.emplace_back(elem);
+    
+    return elements;
+}
+
 /**
  * @brief Distributed POK Proof with n provers
  * 

@@ -156,10 +156,89 @@ void testDPokProver(const char *argv[])
 
 }
 
+/*
+ * argv[1] - client id
+ * argv[2] - shares file
+ * argv[3] - input size
+ */
+bool run_dpok(const char *argv[])
+{
+
+    alt_bn128_pp::init_public_params();
+
+    typedef alt_bn128_pp ppT;
+    typedef G1<ppT> GroupT;
+    typedef Fr<ppT> FieldT;
+
+    std::string hub_address = "localhost:8000";
+    size_t client_id = std::atoi(argv[1]);
+    std::string shares_file(argv[2]);
+    size_t input_size = std::atoi(argv[3]);
+
+
+    size_t L = input_size;
+    DPoKProver<GroupT, FieldT, 3> dprover(hub_address, client_id);
+
+    std::vector<FieldT> witness;
+    GroupT commitment;
+    std::vector<GroupT> gens;
+
+    std::vector<FieldT> coeffs = {15, 20, 50, 100, 120, 170, 124, 200, 453, 995};
+    for(size_t i=0; i < coeffs.size(); ++i)
+        gens.emplace_back(coeffs[i] * GroupT::one());
+
+    // read witness shares from shares_file
+    std::ifstream ifile(shares_file);
+    witness = read_elements<FieldT>(ifile);
+    ifile.close();
+
+    // actual commitment for test
+    std::vector<FieldT> shared_vector(L, FieldT::one());
+    commitment = multi_exp<GroupT, FieldT, multi_exp_method_bos_coster>(
+        gens.cbegin(), gens.cend(),
+        shared_vector.cbegin(), shared_vector.cend(),
+        1
+    );
+
+    dprover.init();    
+    BulletinBoard<BroadcastChannel> bb;
+    BroadcastChannel bChannel(hub_address, client_id);
+    bb.set_channel(bChannel);
+    bb.init();
+
+    dprover.set_bulletin_board(bb);
+    dprover.set_generators(gens);
+    dprover.set_witness(witness);
+    dprover.set_commitment(commitment);
+
+    Transcript tr = dprover.run_prover();
+
+    
+    PoKProof<GroupT, FieldT, 3> proof = dprover.transcript_to_proof(tr, gens.size());
+    //std::ofstream ofile(std::string("proof-") + std::string(argv[1]) + ".dat");
+    //proof.write(ofile);
+
+    std::cout << "Verifying DPOK" << std::endl;
+
+    DPoKVerifier<GroupT, FieldT, 3> verifier;
+    verifier.set_generators(gens);
+    verifier.set_coefficients(std::vector<FieldT>({3,-3,1}));
+    verifier.set_commitment(commitment);
+    bool ret = verifier.verify(proof);
+
+    if (ret)
+        std::cout << "Verification Status [OK]";
+    else 
+        std::cout << "Verification Status [FAIL]";
+
+
+
+}
 int main(int argc, const char *argv[])
 {
     // testPokProver();
-    testDPokProver(argv);
+    // testDPokProver(argv);
+    run_dpok(argv);
     return 0;
 
 
