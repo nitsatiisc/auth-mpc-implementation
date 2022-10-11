@@ -19,6 +19,21 @@ bool run_bbs_prover(size_t playerid, size_t prover_id)
     BBSAuthProver<GroupT, FieldT, 3> bbsprover(hub_address, playerid);
     BBSFullParams<alt_bn128_pp> bbs_pp = readFullParams<alt_bn128_pp>("bbs-public-params", L);
 
+    if (playerid == prover_id)
+    {
+        BBSMessage<alt_bn128_pp> msg = readMessage<alt_bn128_pp>(msgfilename, L);
+        bbsprover.set_message(msg.m);
+
+        GroupT A;
+        FieldT e;
+        FieldT s;
+
+        std::string sigfilename = std::string("bbs-signature-P") + std::to_string(playerid) + ".sig";
+        read_signature<GroupT, FieldT>(sigfilename, A, e, s);
+        bbsprover.set_signature(A, e, s);
+        bbsprover.set_randomisation(1000, 1000, 1000);
+    }
+
     std::vector<GroupT> bbs_gens;
     bbs_gens.emplace_back(bbs_pp.pp.g1);
     bbs_gens.insert(bbs_gens.end(), bbs_pp.pp.h.begin(), bbs_pp.pp.h.end());
