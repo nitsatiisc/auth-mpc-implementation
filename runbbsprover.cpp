@@ -50,8 +50,12 @@ bool run_bbs_prover(size_t playerid, size_t prover_id)
     bbs_gens.insert(bbs_gens.end(), bbs_pp.pp.h.begin(), bbs_pp.pp.h.end());
     bbsprover.set_bbs_generators(bbs_gens);
 
+    auto start = libff::get_nsec_time();
     bool ret = bbsprover.run_signature_proof(prover_id);
+    auto end = libff::get_nsec_time();
     std::cout << "Total Bytes Sent: " << bbsprover.get_communication() << std::endl;
+    std::cout << "Total Time: " << (end - start)/1000000 << "ms" << std::endl;
+    
     return ret;
 }
 
@@ -59,11 +63,6 @@ int main(int argc, char *argv[])
 {
     size_t playerid = std::atoi(argv[1]);
     size_t prover_id = std::atoi(argv[2]);
-
-    auto start = libff::get_nsec_time();
     bool ret = run_bbs_prover(playerid, prover_id);
-    auto end = libff::get_nsec_time();
-
-    std::cout << "Total Time: " << (end - start)/1000000 << "ms" << std::endl;
     return 0;
 }
