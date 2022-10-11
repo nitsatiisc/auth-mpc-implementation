@@ -167,7 +167,7 @@ class BBSAuthProver {
 
         dprover1.set_bulletin_board(bb);
         Transcript tr = dprover1.run_prover();
-        PoKProof<GroupT, FieldT, n> proof = dprover1.transcript_to_proof(tr, m.size()+1);
+        PoKProof<GroupT, FieldT, n> proof = dprover1.transcript_to_proof(tr, L+1);
 
         // run DPOK Verifier
         std::cout << "Verifying DPOK" << std::endl;
