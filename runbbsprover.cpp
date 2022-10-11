@@ -6,6 +6,17 @@ const std::string data_dir_prefix = "data/Input-P";
 const std::string dest_dir_prefix = "Player-Data/Input-P";
 size_t L = 1000;
 
+template<typename GroupT, typename FieldT>
+void read_signature(const std::string& filename, GroupT& A, FieldT& e, FieldT& s)
+{
+    std::ifstream ifile(filename);
+    ifile >> A;
+    ifile >> e;
+    ifile >> s;
+
+    ifile.close();
+}
+
 bool run_bbs_prover(size_t playerid, size_t prover_id)
 {
     alt_bn128_pp::init_public_params();
