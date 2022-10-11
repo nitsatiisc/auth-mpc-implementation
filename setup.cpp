@@ -54,8 +54,8 @@ int main(int argc, char *argv[])
     generate_bbs_params();
     for(size_t partyid = 0; partyid < 3; ++partyid)
     {
-        generate_msg_file(partyid, L);
-        generate_bbs_signature(partyid, L);
+        generate_msg_file(partyid);
+        generate_bbs_signature(partyid);
         
     }
 
