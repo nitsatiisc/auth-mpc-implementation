@@ -13,6 +13,8 @@ class BBSAuthProver {
         total_bytes_sent = 0;
     };
 
+    size_t get_communication() { return total_bytes_sent; };
+
     // needed only for authenticating prover
     void set_signature(const GroupT A, const FieldT e, const FieldT s)
     {
@@ -114,6 +116,7 @@ class BBSAuthProver {
         std::stringstream msg_statement;
         msg_statement << statement[0] << statement[1] << statement[2] << statement[3];
         bb.publish(msg_statement.str());
+        total_bytes_sent += msg_statement.str().size();
     };
 
     std::vector<GroupT> get_statements()
@@ -168,6 +171,7 @@ class BBSAuthProver {
         dprover1.set_bulletin_board(bb);
         Transcript tr = dprover1.run_prover();
         PoKProof<GroupT, FieldT, n> proof = dprover1.transcript_to_proof(tr, L+1);
+        total_bytes_sent += dprover1.get_communication();
 
         // run DPOK Verifier
         std::cout << "Verifying DPOK" << std::endl;
