@@ -50,8 +50,9 @@ bool run_bbs_prover(size_t playerid, size_t prover_id)
     bbs_gens.insert(bbs_gens.end(), bbs_pp.pp.h.begin(), bbs_pp.pp.h.end());
     bbsprover.set_bbs_generators(bbs_gens);
 
+    bool ret = bbsprover.run_signature_proof(prover_id);
     std::cout << "Total Bytes Sent: " << bbsprover.get_communication() << std::endl;
-    return bbsprover.run_signature_proof(prover_id);
+    return ret;
 }
 
 int main(int argc, char *argv[])
