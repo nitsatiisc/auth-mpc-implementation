@@ -73,10 +73,10 @@ class BBSAuthProver {
         C = (t - eta)*bbsh[0] - (v*d);
 
         // Generators and commitment for proof 1
-        std::vector<GroupT> gens1 = bbsh;
-        dprover1.init();
-        dprover1.set_generators(gens1);
-        dprover1.set_commitment(D);
+        // std::vector<GroupT> gens1 = bbsh;
+        // dprover1.init();
+        // dprover1.set_generators(gens1);
+        // dprover1.set_commitment(D);
 
         // Generators and witness for proof 2
 
@@ -94,10 +94,10 @@ class BBSAuthProver {
     };
 
     // send statement
-    void send_statement(bool isAuth)
+    void send_statement(size_t prover_id)
     {
         std::vector<GroupT> statement(4, GroupT::zero());
-        if (isAuth)
+        if (client_id == prover_id)
         {
             statement[0] = C;
             statement[1] = D;
@@ -123,15 +123,21 @@ class BBSAuthProver {
     };
 
     
-    bool run_signature_proof(bool isAuth)
+    bool run_signature_proof(size_t prover_id)
     {
         compute_statements();
         init();
 
         // send statement to all (C, D, Abar/d, Adash) 
-        send_statement(isAuth);
+        send_statement(prover_id);
         // receive all statements
         std::vector<GroupT> statements = get_statements();
+        assert(statements.size() == 4*n);
+
+        // set generators and statement for the first prover
+        dprover1.init();
+        dprover1.set_generators(bbsh);
+        dprover1.set_commitment(statements[4*prover_id + 1]);
 
         // witness file:
         // m_1,...m_L, eta, r, v, e, t
@@ -154,10 +160,10 @@ class BBSAuthProver {
         // run DPOK Verifier
         std::cout << "Verifying DPOK" << std::endl;
 
-        DPoKVerifier<GroupT, FieldT, 3> verifier;
+        DPoKVerifier<GroupT, FieldT, n> verifier;
         verifier.set_generators(bbsh);
         verifier.set_coefficients(std::vector<FieldT>({3, -3, 1}));
-        verifier.set_commitment(D);
+        verifier.set_commitment(statements[4*prover_id + 1]);
         bool ret = verifier.verify(proof);
 
         if (ret)
