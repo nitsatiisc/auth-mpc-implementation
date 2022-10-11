@@ -51,6 +51,7 @@ void setup_player(size_t playerid)
 
 }
 
+// make sure you call setup binary before running this.
 int main(int argc, char *argv[])
 {
     size_t playerid = std::atoi(argv[1]);

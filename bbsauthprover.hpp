@@ -13,6 +13,7 @@ class BBSAuthProver {
         total_bytes_sent = 0;
     };
 
+    // needed only for authenticating prover
     void set_signature(const GroupT A, const FieldT e, const FieldT s)
     {
         this->A = A;
@@ -20,11 +21,13 @@ class BBSAuthProver {
         this->s = s;
     };
 
+    // needed only for authenticating prover
     void set_message(const std::vector<FieldT>& m)
     {
         this->m = m;
     };
 
+    // needed only for authenticating prover
     void set_randomisation(const FieldT u, const FieldT r, const FieldT eta)
     {
         this->u = u;
@@ -34,6 +37,7 @@ class BBSAuthProver {
         this->t = this->s - (this->r)*(this->v);
     };
 
+    // needed only for authenticating prover
     void write_extended_witness(const std::string& filename)
     {
         std::ofstream ofile(filename);
@@ -56,6 +60,7 @@ class BBSAuthProver {
         L = bbsh.size() - 1;
     };
 
+    // needed only for authenticating prover
     void compute_statements()
     {
         // compute b = h_0^s. h_1.m_1 + ... h_L.m_L
@@ -125,13 +130,18 @@ class BBSAuthProver {
     
     bool run_signature_proof(size_t prover_id)
     {
-        compute_statements();
+        if (client_id == prover_id)
+            compute_statements();
+        
+        // initialize hub connections
         init();
 
         // send statement to all (C, D, Abar/d, Adash) 
+        std::cout << "Sending statement for BBS proof" << std::endl;
         send_statement(prover_id);
         // receive all statements
         std::vector<GroupT> statements = get_statements();
+        std::cout << "Received all statements" << std::endl;
         assert(statements.size() == 4*n);
 
         // set generators and statement for the first prover
@@ -212,10 +222,7 @@ class BBSAuthProver {
 
 // Run DPOK
 // BBSAuthProver
-// set_message()
 // set_generators()
-// set_signature()
-// set_randomisation()
 // init()
 // run_signature_proof()
 
