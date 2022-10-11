@@ -85,25 +85,29 @@ template<typename GroupT, typename FieldT, typename ChannelT>
 class PoKProver 
 {
     public:
-    PoKProver() { round_ = 0; }
+    PoKProver() { round_ = 0; num_bytes_sent_ = 0; prover_time_ = 0; };
     void set_bulletin_board(const BulletinBoard<ChannelT>& bb) { bb_ = bb; };
     void set_generators(const std::vector<GroupT>& gens) { gens_ = gens; };
     void set_witness(const std::vector<FieldT>& witness) { witness_ = witness; };
     void set_commitment(const GroupT& commitment) { commitment_ = commitment; };
-
+    size_t get_communication() { return num_bytes_sent_; };
+    long long get_prover_time() { return prover_time_; };
     Transcript run_prover()
     {
         std::string m;
         Transcript tr;
+        long long start = libff::get_nsec_time();
         while ((m=next_message()) != "")
         {
             bb_.publish(m);
+            num_bytes_sent_ += m.size();
             std::string seed = bb_.get_all_messages();
-            std::cout << seed << std::endl;
+            //std::cout << seed << std::endl;
             tr[round_ - 1] = seed;
             fs_.absorb(seed); // update local state for generating challenges
         }
-
+        long long end = libff::get_nsec_time();
+        prover_time_ = end - start;
         return tr;
 
     };
@@ -140,6 +144,8 @@ class PoKProver
     std::vector<FieldT> random_vector_;
     GroupT first_message_;
     size_t round_;
+    size_t num_bytes_sent_;
+    long long prover_time_;
 
     private:
     std::string next_message() {
@@ -190,6 +196,8 @@ class PoKProver
         } else if (round_ > 1) 
             return "";
 
+        return "";
+
     }
 
 };
@@ -198,8 +206,7 @@ template<typename GroupT, typename FieldT, size_t n>
 class DPoKProver 
 {
     public:
-    DPoKProver(const std::string& hub_address, size_t client_id): 
-    client_id(client_id), hub_address(hub_address)
+    DPoKProver()
     {
         //pchannel.reset(new BroadcastChannel(hub_address, client_id));
     };
@@ -226,6 +233,14 @@ class DPoKProver
         prover.set_commitment(commitment); 
     };
 
+    size_t get_communication() {
+        return prover.get_communication();
+    };
+
+    long long get_prover_time() {
+        return prover.get_prover_time();
+    };
+
     Transcript run_prover()
     {
         return prover.run_prover();
@@ -239,9 +254,6 @@ class DPoKProver
 
     private:
     PoKProver<GroupT, FieldT, BroadcastChannel> prover;
-    //std::shared_ptr<BroadcastChannel> pchannel;
-    size_t client_id;
-    std::string hub_address;
 };
 
 
@@ -286,21 +298,23 @@ class DPoKVerifier
     std::vector<GroupT> gens_;
     GroupT commitment_;
     std::vector<FieldT> coeffs_; // reconstruction coefficients
-
+    long long verifier_time_;
 
     public:
     DPoKVerifier() {
-
+        verifier_time_ = 0;
     };
 
     void set_coefficients(const std::vector<FieldT>& coeffs) { coeffs_ = coeffs; };
     void set_generators(const std::vector<GroupT>& gens) { gens_ = gens; };
     void set_commitment(const GroupT& commitment) { commitment_ = commitment; };
+    long long get_verifier_time() { return verifier_time_; };
 
     bool verify(const PoKProof<GroupT, FieldT, n>& proof)
     {
         // check <gens, c_1z_1+c_2z_2+...+c_nz_n> = c*commitment + c_1A_1 + ... + c_nA_n
 
+        long long start = libff::get_nsec_time();
         std::vector<FieldT> z(gens_.size(), FieldT::zero());
         for(size_t i=0; i < z.size(); ++i)
         {
@@ -328,6 +342,8 @@ class DPoKVerifier
             1
         );
 
+        long long end = libff::get_nsec_time();
+        verifier_time_ = end - start;
         return (rhs == lhs);
     };
 

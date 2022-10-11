@@ -181,7 +181,7 @@ G2<ppT> readVerificationKey(const std::string& filename)
 template<typename ppT>
 BBSMessage<ppT> readMessage(const std::string& filename, size_t L)
 {
-    std::string msgfilename = filename + "_msg.dat";
+    std::string msgfilename = filename;
     BBSMessage<ppT> msg; 
     std::ifstream msgfile(msgfilename);
     for(size_t i=1; i <= L; ++i)
