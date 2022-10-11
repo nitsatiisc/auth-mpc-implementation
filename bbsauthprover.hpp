@@ -10,9 +10,6 @@ class BBSAuthProver {
         const std::string& hub_address,
         size_t client_id
     ): hub_address(hub_address), client_id(client_id) {
-        dprover1.reset(new DPoKProver<GroupT, FieldT, n>(hub_address, client_id));
-        dprover2.reset(new DPoKProver<GroupT, FieldT, n>(hub_address, client_id));
-        dprover3.reset(new DPoKProver<GroupT, FieldT, n>(hub_address, client_id));
         total_bytes_sent = 0;
     };
 
@@ -55,7 +52,7 @@ class BBSAuthProver {
     void set_bbs_generators(const std::vector<GroupT>& gens)
     {
         bbsg1 = gens[0]; // g1
-        bbsh.insert(gens.begin()+1, gens.end()); // h0,...,hL
+        bbsh.insert(bbsh.end(), gens.begin()+1, gens.end()); // h0,...,hL
         L = bbsh.size() - 1;
     };
 

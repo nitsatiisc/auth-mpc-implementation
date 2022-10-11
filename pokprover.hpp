@@ -31,6 +31,47 @@ std::vector<T> read_elements(std::ifstream& ifile)
     return elements;
 }
 
+
+template<typename FieldT>
+std::vector<FieldT> read_elements_montgomery(std::istream& is)
+{
+    // precompute powers (2^(8*i)) for i=0,...,31
+    std::vector<FieldT> powers_of_two;
+    powers_of_two.emplace_back(FieldT::one());
+    FieldT power = FieldT::one();
+    for(size_t i=0; i < 32; ++i)
+    {
+        power = FieldT(256)*power;
+        powers_of_two.emplace_back(power);
+    }
+
+    // Montgomery factor
+    size_t nwords = (FieldT::num_bits + 63)/64;
+    size_t nbytes = 8 * nwords;
+    FieldT R = (FieldT(2))^(64*nwords);
+    FieldT Rinv = R.inverse();
+
+    std::vector<FieldT> result;
+    std::vector<uint8_t> buffer(nbytes);
+    while (!is.eof())
+    {
+        // read a buffer for the number
+        is.read((char *)(&buffer[0]), nbytes);
+        if (!is.eof())
+        {
+            FieldT number = 0;
+            for(size_t i=0; i < nbytes; ++i)
+                number += (FieldT(buffer[i])*powers_of_two[i]);
+            number = number * Rinv;
+            result.emplace_back(number);
+        }
+    }
+
+    return result;
+
+}
+
+
 /**
  * @brief Distributed POK Proof with n provers
  * 

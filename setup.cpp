@@ -6,15 +6,16 @@
 
 // generate bbs signatures on messages.
 
+const size_t L = 1000;
 const std::string msg_file_suffix = "_msg.dat";
 const std::string data_dir_prefix = "data/Input-P";
 void generate_bbs_params()
 {
     alt_bn128_pp::init_public_params();
-    generateParams<alt_bn128_pp>("bbs-public-params", 1000);
+    generateParams<alt_bn128_pp>("bbs-public-params", L);
 }
 
-void generate_msg_file(size_t partyid, size_t L)
+void generate_msg_file(size_t partyid)
 {
     std::string filename = data_dir_prefix + std::to_string(partyid);
     std::ofstream ofile(filename);
@@ -25,7 +26,7 @@ void generate_msg_file(size_t partyid, size_t L)
     ofile.close();
 }
 
-void generate_bbs_signature(size_t partyid, size_t L)
+void generate_bbs_signature(size_t partyid)
 {
     alt_bn128_pp::init_public_params();
     std::string filename = data_dir_prefix + std::to_string(partyid);
@@ -33,7 +34,7 @@ void generate_bbs_signature(size_t partyid, size_t L)
 
 
     BBSMessage<alt_bn128_pp> msg = readMessage<alt_bn128_pp>(filename, L);
-    BBSFullParams<alt_bn128_pp> bbs_pp = readFullParams<alt_bn128_pp>("bbs-public-params", 1000);
+    BBSFullParams<alt_bn128_pp> bbs_pp = readFullParams<alt_bn128_pp>("bbs-public-params", L);
     BBSSignature<alt_bn128_pp> sig = sign<alt_bn128_pp, multi_exp_method_bos_coster>(
         bbs_pp, 
         msg,
@@ -53,7 +54,6 @@ int main(int argc, char *argv[])
     generate_bbs_params();
     for(size_t partyid = 0; partyid < 3; ++partyid)
     {
-        size_t L=1000;
         generate_msg_file(partyid, L);
         generate_bbs_signature(partyid, L);
         
