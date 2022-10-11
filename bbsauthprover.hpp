@@ -56,6 +56,7 @@ class BBSAuthProver {
     void set_bbs_generators(const std::vector<GroupT>& gens)
     {
         bbsg1 = gens[0]; // g1
+        bbsh.clear();
         bbsh.insert(bbsh.end(), gens.begin()+1, gens.end()); // h0,...,hL
         L = bbsh.size() - 1;
     };
@@ -76,7 +77,7 @@ class BBSAuthProver {
         Abar = (u*b) - (e*Adash);
         D = (eta * bbsh[0]) + b1;
         C = (t - eta)*bbsh[0] - (v*d);
-
+        std::cout << "D:" << D << std::endl;
         // Generators and commitment for proof 1
         // std::vector<GroupT> gens1 = bbsh;
         // dprover1.init();
@@ -148,6 +149,7 @@ class BBSAuthProver {
         dprover1.init();
         dprover1.set_generators(bbsh);
         dprover1.set_commitment(statements[4*prover_id + 1]);
+        std::cout << "Comm:" << statements[4*prover_id + 1] << "\n";
 
         // witness file:
         // m_1,...m_L, eta, r, v, e, t
