@@ -2,11 +2,12 @@
 #define __AUTH_MPC_BCAST_HUB__
 
 #include <bits/stdc++.h>
-#include <boost/algorithm/string.hpp>
+//#include <boost/algorithm/string.hpp>
 #include <string>
-
+#include <json.hpp>
 
 #include "broadcastclient.hpp"
+using nlohmann::json;
 
 class BroadcastHub
 {
@@ -26,12 +27,26 @@ class BroadcastHub
     void broadcast()
     {
         // assemble all messages into a message
-        std::vector<uint8_t> full_message;
+        json json_map;
+        for(size_t i=0; i < nclients; ++i)
+        {
+            json j = json::from_bjdata(round_messages[i]);
+            json_map[std::to_string(i)] = j;
+        }
+
+        /*
+        std::stringstream json_str;
+        json_str << j_map;
+        std::string contents = json_str.str();
+        std::vector<uint8_t> full_message(contents.begin(), contents.end());
+         */
+        std::vector<uint8_t> full_message = json::to_bjdata(json_map);
+        /*
         for(size_t i=0; i < nclients; ++i)
         {
             full_message.insert(full_message.end(), round_messages[i].begin(), round_messages[i].end());
         }
-
+        */
         uint8_t proto_code = PROTO_CODE_SEND_MSG_TO_CLIENT;
         for(size_t i=0; i < nclients; ++i)
         {

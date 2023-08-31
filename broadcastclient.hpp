@@ -4,6 +4,7 @@
 #include <zmq.h>
 #include <iostream>
 #include <string>
+#include <mutex>
 
 #define PROTO_CODE_DEALER_CONNECT 1
 #define HELLO_MESSAGE 2
@@ -69,6 +70,14 @@ class BroadcastClient
         total_bytes_recv = 0;
         is_connected = false;
         hello_message = HELLO_MESSAGE;
+    };
+
+    uint64_t bytes_sent() const {
+        return total_bytes_sent;
+    };
+
+    uint64_t bytes_received() const {
+        return total_bytes_recv;
     };
 
     bool register_with_hub()
@@ -140,6 +149,7 @@ class BroadcastClient
                 std::vector<std::vector<uint8_t> > parts;
                 read_multipart_message(dealer_socket, parts);
                 assert(parts.size() == 2);
+                total_bytes_recv += parts[1].size();
                 return parts[1];
                 // return the appropriate part to message.
             }

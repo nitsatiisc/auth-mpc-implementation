@@ -151,8 +151,9 @@ class BBSAuthProver {
         // set generators and statement for the first prover
         dprover1.init();
         dprover1.set_generators(bbsh);
+        dprover1.set_coefficients({3, -3, 1});
+        //dprover1.set_coefficients({5,-10,10,-5,1});
         dprover1.set_commitment(statements[4*prover_id + 1]);
-        std::cout << "Comm:" << statements[4*prover_id + 1] << "\n";
 
         // witness file:
         // m_1,...m_L, eta, r, v, e, t
@@ -162,18 +163,24 @@ class BBSAuthProver {
         std::ifstream ifile(shares_file, std::ios::binary);
         auto witness = read_elements_montgomery<FieldT>(ifile);
 
+        std::cout << "Finished reading shares" << witness.size() << std::endl;
+
         std::vector<FieldT> wit1;
 
         wit1.emplace_back(witness[L]); // share of eta
         wit1.insert(wit1.end(), witness.begin(), witness.begin()+L);
         dprover1.set_witness(wit1);
 
+        std::cout << "Finished setting witness" << std::endl;
+
         dprover1.set_bulletin_board(bb);
         Transcript tr = dprover1.run_prover();
-        PoKProof<GroupT, FieldT, n> proof = dprover1.transcript_to_proof(tr, L+1);
+        //PoKProof<GroupT, FieldT, n> proof = dprover1.transcript_to_proof(tr, L+1);
         total_bytes_sent += dprover1.get_communication();
-
+        bool ret = dprover1.get_result();
         // run DPOK Verifier
+
+        /* 
         std::cout << "Verifying DPOK" << std::endl;
 
         DPoKVerifier<GroupT, FieldT, n> verifier;
@@ -181,6 +188,7 @@ class BBSAuthProver {
         verifier.set_coefficients(std::vector<FieldT>({3, -3, 1}));
         verifier.set_commitment(statements[4*prover_id + 1]);
         bool ret = verifier.verify(proof);
+        */        
 
         if (ret)
             std::cout << "Verification Status [OK]";

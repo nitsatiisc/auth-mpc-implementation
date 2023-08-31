@@ -6,7 +6,10 @@
 
 // generate bbs signatures on messages.
 
-const size_t L = 1000;
+//const size_t L = 1023;
+// const size_t L = 8191;
+// const size_t L = 131071;
+const size_t L = 1023;
 const std::string msg_file_suffix = "_msg.dat";
 const std::string data_dir_prefix = "data/Input-P";
 void generate_bbs_params()
@@ -52,7 +55,7 @@ void generate_bbs_signature(size_t partyid)
 int main(int argc, char *argv[])
 {
     generate_bbs_params();
-    for(size_t partyid = 0; partyid < 3; ++partyid)
+    for(size_t partyid = 0; partyid < 1; ++partyid)
     {
         generate_msg_file(partyid);
         generate_bbs_signature(partyid);

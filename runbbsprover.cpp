@@ -4,7 +4,11 @@
 
 const std::string data_dir_prefix = "data/Input-P";
 const std::string dest_dir_prefix = "Player-Data/Input-P";
-size_t L = 1000;
+//size_t L = 1023;
+//size_t L = 8191;
+// size_t L=131071;
+size_t L=1023;
+const size_t nparties = 3;
 
 template<typename GroupT, typename FieldT>
 void read_signature(const std::string& filename, GroupT& A, FieldT& e, FieldT& s)
@@ -27,7 +31,7 @@ bool run_bbs_prover(size_t playerid, size_t prover_id)
     std::string msgfilename = data_dir_prefix + std::to_string(playerid);
     std::string hub_address = "localhost:8000";
 
-    BBSAuthProver<GroupT, FieldT, 3> bbsprover(hub_address, playerid);
+    BBSAuthProver<GroupT, FieldT, nparties> bbsprover(hub_address, playerid);
     BBSFullParams<alt_bn128_pp> bbs_pp = readFullParams<alt_bn128_pp>("bbs-public-params", L);
 
     if (playerid == prover_id)

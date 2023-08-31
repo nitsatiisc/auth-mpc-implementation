@@ -1,75 +1,14 @@
-#ifndef __AUTH_MPC_POK_PROVER__
-#define __AUTH_MPC_POK_PROVER__
+#ifndef AUTH_MPC_POK_PROVER_HPP
+#define AUTH_MPC_POK_PROVER_HPP
 
 #include "bbs.hpp"
 #include "randomness.hpp"
 #include "bulletinboard.hpp"
+#include "utility.hpp"
 #include <memory>
 
 typedef std::map<size_t, std::string>  Transcript;
 
-template<typename T>
-void read_elements(std::vector<T>& v, const std::string& s, size_t n)
-{
-    std::stringstream str;
-    str << s;
-
-    for(size_t i=0; i < n; ++i)
-    {
-        str >> v[i];
-    }
-}
-
-template<typename T>
-std::vector<T> read_elements(std::istream& ifile)
-{
-    std::vector<T> elements;
-    T elem;
-    while (ifile >> elem)
-        elements.emplace_back(elem);
-    
-    return elements;
-}
-
-
-template<typename FieldT>
-std::vector<FieldT> read_elements_montgomery(std::istream& is)
-{
-    // precompute powers (2^(8*i)) for i=0,...,31
-    std::vector<FieldT> powers_of_two;
-    powers_of_two.emplace_back(FieldT::one());
-    FieldT power = FieldT::one();
-    for(size_t i=0; i < 32; ++i)
-    {
-        power = FieldT(256)*power;
-        powers_of_two.emplace_back(power);
-    }
-
-    // Montgomery factor
-    size_t nwords = (FieldT::num_bits + 63)/64;
-    size_t nbytes = 8 * nwords;
-    FieldT R = (FieldT(2))^(64*nwords);
-    FieldT Rinv = R.inverse();
-
-    std::vector<FieldT> result;
-    std::vector<uint8_t> buffer(nbytes);
-    while (!is.eof())
-    {
-        // read a buffer for the number
-        is.read((char *)(&buffer[0]), nbytes);
-        if (!is.eof())
-        {
-            FieldT number = 0;
-            for(size_t i=0; i < nbytes; ++i)
-                number += (FieldT(buffer[i])*powers_of_two[i]);
-            number = number * Rinv;
-            result.emplace_back(number);
-        }
-    }
-
-    return result;
-
-}
 
 
 /**
@@ -87,7 +26,7 @@ class PoKProof {
     std::vector<std::vector<FieldT>> zz;
     size_t vecsize;
 
-    PoKProof(size_t vsize)
+    explicit PoKProof(size_t vsize)
     {
         vecsize = vsize;
         A.resize(n);
@@ -135,6 +74,8 @@ class PoKProver
     long long get_prover_time() { return prover_time_; };
     void set_coefficients(const std::vector<FieldT>& coeffs) { this->coeffs = coeffs; };
 
+    // output the result in case of log protocol
+    bool get_result() { return retval; };
    
     Transcript run_prover()
     {
@@ -146,7 +87,6 @@ class PoKProver
             bb_.publish(m);
             num_bytes_sent_ += m.size();
             current_msg = bb_.get_all_messages();
-            //std::cout << seed << std::endl;
             tr[round_ - 1] = current_msg;
             fs_.absorb(current_msg); // update local state for generating challenges
         }
@@ -156,8 +96,6 @@ class PoKProver
 
     };
 
-    // output the result in case of log protocol
-    bool get_result() { return result; };
 
     template<size_t N>
     PoKProof<GroupT, FieldT, N> transcript_to_proof(Transcript& tr, size_t vecsize)
@@ -198,17 +136,16 @@ class PoKProver
     // inputs for log protocol
     std::vector<FieldT> coeffs;
     GroupT comm_z;
-    GroupT comm_A, comm_B;
     std::vector<GroupT> gens_iter;
     std::vector<FieldT> witness_iter;
-    std::vector<GroupT> gens_L, gens_R;
     bool retval;
     bool expect_field_vector;
+    size_t final_witness_size;
 
 
     private:
     std::string next_message() {
-        std::string msg = get_next_message();
+        std::string msg = get_next_message_log();
         return msg;
     };
 
@@ -282,8 +219,7 @@ class PoKProver
             expect_field_vector = false;
             // compute the challenge and obtain statement for CSP
             FieldT c = fs_.squeeze();
-            std::stringstream current(current_msg);
-            std::vector<GroupT> A = read_elements<GroupT>(current);
+            std::vector<GroupT> A = read_elements<GroupT>(current_msg);
             assert(A.size() == coeffs.size());
             // new statement for CSP
             comm_z = c*commitment_ + multi_exp<GroupT, FieldT, multi_exp_method_bos_coster>(
@@ -300,21 +236,23 @@ class PoKProver
                 witness_iter.emplace_back(c*witness_[i] + random_vector_[i]);
             }
 
+
             // construct message for this round
             assert(witness_iter.size() % 2 == 0);
+            assert(gens_iter.size() == witness_iter.size());
             size_t half = witness_iter.size()/2;
             std::vector<FieldT> witness_L(witness_iter.begin(), witness_iter.begin() + half);
             std::vector<FieldT> witness_R(witness_iter.begin()+half, witness_iter.end());
             std::vector<GroupT> gens_L(gens_iter.begin(), gens_iter.begin()+half);
             std::vector<GroupT> gens_R(gens_iter.begin()+half, gens_iter.end());
 
-            GroupT comm_A = multi_exp<GroupT, FieldT, multi_exp_method_bos_coster>(
+            GroupT comm_B = multi_exp<GroupT, FieldT, multi_exp_method_bos_coster>(
                 gens_L.cbegin(), gens_L.cend(),
                 witness_R.cbegin(), witness_R.cend(),
                 1
             );
 
-            GroupT comm_B = multi_exp<GroupT, FieldT, multi_exp_method_bos_coster>(
+            GroupT comm_A = multi_exp<GroupT, FieldT, multi_exp_method_bos_coster>(
                 gens_R.cbegin(), gens_R.cend(),
                 witness_L.cbegin(), witness_L.cend(),
                 1
@@ -322,6 +260,7 @@ class PoKProver
 
             std::stringstream message_stream;
             message_stream << comm_A << comm_B;
+
             round_++;
             return message_stream.str();
 
@@ -329,7 +268,7 @@ class PoKProver
             // run log protocol
             FieldT c = fs_.squeeze();
             // parse current message for commitments
-            std::vector<GroupT> comms_AB = read_elements(std::stringstream(current_msg));
+            std::vector<GroupT> comms_AB = read_elements<GroupT>(current_msg);
             assert(comms_AB.size() % 2 == 0);
             assert((comms_AB.size()/2) == coeffs.size());
              // A_1,B_1,....,A_n,B_n
@@ -338,7 +277,7 @@ class PoKProver
              for(size_t i=0; i < coeffs.size(); ++i)
              {
                  coeffs_AB.emplace_back(coeffs[i]);
-                 coeffs_AB.emplace_back(coeffs[i]*c.square());
+                 coeffs_AB.emplace_back(coeffs[i]*(c*c));
              }
 
              GroupT comm_z_new = (c*comm_z) + multi_exp<GroupT, FieldT, multi_exp_method_bos_coster>(
@@ -349,21 +288,32 @@ class PoKProver
 
             assert(witness_iter.size() % 2 == 0);
             size_t half = witness_iter.size()/2;
-            std::vector<FieldT> witness_iter_new(half);
-            std::vector<GroupT> gens_iter_new(half);
+            std::vector<FieldT> witness_iter_new(half, 0);
+            std::vector<GroupT> gens_iter_new(half, GroupT::zero());
             for(size_t i=0; i < half; ++i)
             {
                 witness_iter_new[i] = witness_iter[i] + (c*witness_iter[i+half]);
-                gens_iter_new[i] = c*gens_iter[i] + gens_iter[i+half];
+                gens_iter_new[i] = (c*gens_iter[i]) + gens_iter[i+half];
             }
 
             witness_iter = witness_iter_new;
             gens_iter = gens_iter_new;
             comm_z = comm_z_new;
 
+            
+
             // check if the size is small enough now
-            // if yes, terminate and set result
-            if (witness_iter.size() < 128) {
+            // if yes, send the full witness vector
+            if (witness_iter.size() < 64) {
+                std::stringstream message_stream;
+                for(size_t i=0; i < witness_iter.size(); ++i)
+                    message_stream << witness_iter[i] << "\n";
+                
+
+                expect_field_vector = true;
+                final_witness_size = witness_iter.size();
+                round_++;
+                return message_stream.str();
                 
             }
 
@@ -375,13 +325,13 @@ class PoKProver
             std::vector<GroupT> gens_L(gens_iter.begin(), gens_iter.begin()+half);
             std::vector<GroupT> gens_R(gens_iter.begin()+half, gens_iter.end());
 
-            GroupT comm_A = multi_exp<GroupT, FieldT, multi_exp_method_bos_coster>(
+            GroupT comm_B = multi_exp<GroupT, FieldT, multi_exp_method_bos_coster>(
                 gens_L.cbegin(), gens_L.cend(),
                 witness_R.cbegin(), witness_R.cend(),
                 1
             );
 
-            GroupT comm_B = multi_exp<GroupT, FieldT, multi_exp_method_bos_coster>(
+            GroupT comm_A = multi_exp<GroupT, FieldT, multi_exp_method_bos_coster>(
                 gens_R.cbegin(), gens_R.cend(),
                 witness_L.cbegin(), witness_L.cend(),
                 1
@@ -391,12 +341,43 @@ class PoKProver
             message_stream << comm_A << comm_B;
             round_++;
             return message_stream.str();
-            
 
+        } else if (expect_field_vector == true) {
+            // parse the current message for shares of vector
+            std::vector<FieldT> final_witness_all = 
+                read_elements<FieldT>(current_msg);
+            assert(final_witness_all.size() == (coeffs.size() * final_witness_size));
+
+            std::vector<FieldT> Z(final_witness_size, 0);
+            for(size_t i=0; i < coeffs.size(); ++i)
+            {
+                std::vector<FieldT> z(final_witness_all.begin() + (final_witness_size *i),
+                 final_witness_all.begin() + (final_witness_size * (i+1)));
+
+                for(size_t j=0; j < z.size(); ++j)
+                    Z[j] = Z[j] + (coeffs[i] * z[j]);
+            }
+
+            // Z = k_1z_1+ ---- + k_nz_n
+            GroupT lhs = multi_exp<GroupT, FieldT, multi_exp_method_bos_coster>(
+                gens_iter.cbegin(), gens_iter.cend(),
+                Z.cbegin(), Z.cend(),
+                1
+            );
+
+
+            round_++;
+            if (lhs == comm_z)
+                retval = true;
+            else
+                retval = false;
+            return "";
 
         }
 
-    }
+        return "";
+
+    };
 };
 
 template<typename GroupT, typename FieldT, size_t n>
@@ -430,6 +411,11 @@ class DPoKProver
         prover.set_commitment(commitment); 
     };
 
+    void set_coefficients(const std::vector<FieldT>& coeffs)
+    {
+        prover.set_coefficients(coeffs);
+    };
+
     size_t get_communication() {
         return prover.get_communication();
     };
@@ -448,6 +434,10 @@ class DPoKProver
         return prover.template transcript_to_proof<n>(tr, vecsize);
     };
 
+    bool get_result()
+    {
+        return prover.get_result();
+    };
 
     private:
     PoKProver<GroupT, FieldT, BroadcastChannel> prover;

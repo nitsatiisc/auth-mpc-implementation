@@ -3,7 +3,11 @@
 
 const std::string data_dir_prefix = "data/Input-P";
 const std::string dest_dir_prefix = "Player-Data/Input-P";
-size_t L = 1000;
+//size_t L = 1023;
+//size_t L = 8191;
+// size_t L = 131071;
+size_t L = 1023;
+
 
 
 template<typename GroupT, typename FieldT>
@@ -44,6 +48,7 @@ void setup_player(size_t playerid)
     std::string sigfilename = std::string("bbs-signature-P")+std::to_string(playerid)+".sig";
     read_signature<GroupT, FieldT>(sigfilename, A, e, s);
     bbsprover.set_signature(A, e, s);
+    // set the random values sampled as part of BBS POK.
     bbsprover.set_randomisation(1000, 1000, 1000);
 
     std::string destfilename = dest_dir_prefix + std::to_string(playerid) + "-0";

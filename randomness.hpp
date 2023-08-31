@@ -21,25 +21,10 @@
 #include <libff/algebra/field_utils/bigint.hpp>
 #include <libff/common/rng.hpp>
 #include <libff/common/utils.hpp>
-
+#include "utility.hpp"
 using namespace libff;
 
-const char hex_table[] = {'0', '1', '2', '3', '4', '5', '6', '7',
-                          '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
 
-std::string hex_string_from_bytes(const unsigned char *bytes, size_t n)
-{
-    std::string hex_string = "";
-    for(size_t i=0; i < n; ++i)
-    {
-        uint8_t val = bytes[i];
-        hex_string.push_back(hex_table[val/16]);
-        hex_string.push_back(hex_table[val % 16]);
-
-    }
-
-    return hex_string;
-}
 
 template<typename FieldT>
 class FSModule {

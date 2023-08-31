@@ -215,6 +215,30 @@ BBSSignature<ppT> sign(const BBSFullParams<ppT>& params, const BBSMessage<ppT>& 
     sig.A = ((params.keypair.sk + sig.e).inverse()) * (params.pp.g1 + multi_exp_result);
     return sig;
 }
+template<typename ppT, multi_exp_method Method>
+BBSSignature<ppT> sign_message(const BBSFullParams<ppT>& params, const std::vector<Fr<ppT>>& msg, size_t L)
+{
+
+    BBSSignature<ppT> sig;
+    sig.e = Fr<ppT>::random_element();
+    sig.s = Fr<ppT>::random_element();
+    std::vector< Fr<ppT>> scalars;
+    // prepend s to m into a scalar array to enable one multi-exp.
+    scalars.emplace_back(sig.s);
+    for(size_t i=1; i <= L; ++i)
+    {
+        scalars.emplace_back(msg[i-1]);
+    }
+
+    // compute b = <(1, s, m_1, ..., m_L), (g_1, h_0, h_1, ..., h_L)>
+    G1<ppT> multi_exp_result = multi_exp<G1<ppT>, Fr<ppT>, Method>(params.pp.h.cbegin(), params.pp.h.cend(),
+                                                                   scalars.cbegin(), scalars.cend(), 1);
+    sig.A = ((params.keypair.sk + sig.e).inverse()) * (params.pp.g1 + multi_exp_result);
+    return sig;
+}
+
+
+
 
 template<typename ppT, multi_exp_method Method>
 bool verify(const BBSPublicParams<ppT>& pp, 
