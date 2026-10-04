@@ -124,6 +124,19 @@ std::vector<FieldT> read_elements_montgomery(std::istream& is)
     FieldT R = (FieldT(2))^(64*nwords);
     FieldT Rinv = R.inverse();
 
+    // MP-SPDZ >= 0.3 prefixes Persistence files with a signature
+    // (8-byte length + protocol/prime description); skip it if present.
+    is.seekg(0, std::ios::end);
+    uint64_t file_size = is.tellg();
+    is.seekg(0, std::ios::beg);
+    uint64_t header_len = 0;
+    if (file_size >= 8 && is.read((char *)(&header_len), 8) &&
+        header_len < 1024 && file_size >= 8 + header_len &&
+        (file_size - 8 - header_len) % nbytes == 0)
+        is.seekg(8 + header_len, std::ios::beg);
+    else
+        is.seekg(0, std::ios::beg);
+
     std::vector<FieldT> result;
     std::vector<uint8_t> buffer(nbytes);
     size_t count = 0;

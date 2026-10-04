@@ -1,10 +1,13 @@
-cmake_minimum_required(VERSION 3.26)
+cmake_minimum_required(VERSION 3.22)
 project(auth_mpc)
 
 set(CMAKE_CXX_STANDARD 14)
 
 
-include_directories(.)
+set(LIBFF_PREFIX "${CMAKE_SOURCE_DIR}/../deps/libff-install" CACHE PATH "libff install prefix")
+
+include_directories(. ${LIBFF_PREFIX}/include /usr/include/nlohmann)
+link_directories(${LIBFF_PREFIX}/lib)
 
 add_executable(setup setup.cpp)
 target_link_libraries(setup ff gmp gmpxx crypto)

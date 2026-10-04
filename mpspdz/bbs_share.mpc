@@ -1,0 +1,17 @@
+# Secret-share every party's BBS message vector and persist the shares.
+#
+# Party p reads n integers from Player-Data/Input-P<p>-0.  The shares are
+# appended to Persistence/Transactions-P<i>.data in party order, so party i's
+# file holds [share of m_0 (n elems), share of m_1, ..., share of m_{N-1}],
+# which is the layout dpok-bbs.cpp expects.
+#
+# Compile:  ./compile.py -P <BN254 r> bbs_share <nparties> <n>
+import sys
+
+nparties = int(program.args[1])
+n = int(program.args[2])
+
+for p in range(nparties):
+    m = sint.Array(n)
+    m.input_from(p)
+    sint.write_to_file(m)

@@ -170,12 +170,11 @@ void test_dpok_bbs_proto()
 }
 
 template<typename ppT, size_t N>
-void test_dpok_bbs_mp_spdz()
+void test_dpok_bbs_mp_spdz(const std::string& mpspdz_dir, size_t n)
 {
     typedef G1<ppT> GroupT;
     typedef Fr<ppT> FieldT;
 
-    size_t n=400*10; // message size
     // ************* Protocol Prep **************************
     // - Sample BBS Params for n
     // - Sample messages
@@ -184,8 +183,8 @@ void test_dpok_bbs_mp_spdz()
     // - Set prover inputs
     // - run provers
     // ******************************************************
-    std::string persistence_data_dir = "/home/nitin/work/MP-SPDZ/Persistence/";
-    std::string player_data_dir = "/home/nitin/work/MP-SPDZ/Player-Data/";
+    std::string persistence_data_dir = mpspdz_dir + "/Persistence/";
+    std::string player_data_dir = mpspdz_dir + "/Player-Data/";
     std::string filename = "example.dat";
 
     generateParams<ppT>(filename, n);
@@ -357,8 +356,12 @@ int main(int argc, char *argv[])
     typedef Fr<ppT> FieldT;
     typedef G1<ppT> GroupT;
 
+    // usage: dpok-bbs [mpspdz_dir] [message_size]
+    std::string mpspdz_dir = (argc > 1) ? argv[1] : "../mp-spdz-0.4.3";
+    size_t n = (argc > 2) ? std::atoi(argv[2]) : 400*10;
+
     ppT::init_public_params();
     //test_dpok_bbs_proto<ppT, 3>();
-    test_dpok_bbs_mp_spdz<ppT, 5>();
+    test_dpok_bbs_mp_spdz<ppT, 5>(mpspdz_dir, n);
 
 }
